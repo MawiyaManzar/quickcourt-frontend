@@ -15,7 +15,7 @@ export default function ProfilePage() {
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       toast.error('Name cannot be empty');
