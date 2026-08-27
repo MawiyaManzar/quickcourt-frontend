@@ -1,0 +1,102 @@
+{
+  "info": {
+    "name": "QuickCourt API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Public Venues",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "ngrok-skip-browser-warning", "value": "true" }
+        ],
+        "url": {
+          "raw": "https://railing-dwelling-useable.ngrok-free.dev/api/venues",
+          "protocol": "https",
+          "host": ["railing-dwelling-useable", "ngrok-free", "dev"],
+          "path": ["api", "venues"]
+        }
+      }
+    },
+    {
+      "name": "2. Smart Pick Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "ngrok-skip-browser-warning", "value": "true" }
+        ],
+        "url": {
+          "raw": "https://railing-dwelling-useable.ngrok-free.dev/api/smart-picks?courtId=crt-1&date=2026-08-28",
+          "protocol": "https",
+          "host": ["railing-dwelling-useable", "ngrok-free", "dev"],
+          "path": ["api", "smart-picks"],
+          "query": [
+            { "key": "courtId", "value": "crt-1" },
+            { "key": "date", "value": "2026-08-28" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Owner Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "ngrok-skip-browser-warning", "value": "true" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"owner@quickcourt.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "https://railing-dwelling-useable.ngrok-free.dev/api/auth/login",
+          "protocol": "https",
+          "host": ["railing-dwelling-useable", "ngrok-free", "dev"],
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "4. Customer Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "ngrok-skip-browser-warning", "value": "true" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"player@quickcourt.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "https://railing-dwelling-useable.ngrok-free.dev/api/auth/login",
+          "protocol": "https",
+          "host": ["railing-dwelling-useable", "ngrok-free", "dev"],
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "5. Admin Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "ngrok-skip-browser-warning", "value": "true" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@quickcourt.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "https://railing-dwelling-useable.ngrok-free.dev/api/auth/login",
+          "protocol": "https",
+          "host": ["railing-dwelling-useable", "ngrok-free", "dev"],
+          "path": ["api", "auth", "login"]
+        }
+      }
+    }
+  ]
+}
