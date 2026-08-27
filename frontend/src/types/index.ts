@@ -78,6 +78,7 @@ export interface TimeSlot {
   endTime: string;         // "HH:MM"
   status: SlotStatus;
   blockReason?: string;
+  blockId?: string;
 }
 
 /* ---- Court Block ---- */

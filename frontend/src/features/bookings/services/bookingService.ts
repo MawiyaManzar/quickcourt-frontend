@@ -167,7 +167,7 @@ export const bookingService = {
 
     await new Promise((res) => setTimeout(res, 250));
 
-    return {
+    const confirmedBooking: BookingRecord = {
       id: payload.bookingId,
       userId: 'usr-customer-1',
       courtId: 'crt-1',
@@ -183,5 +183,100 @@ export const bookingService = {
       paymentStatus: 'PAID',
       createdAt: new Date().toISOString(),
     };
+
+    saveLocalBooking(confirmedBooking);
+    return confirmedBooking;
+  },
+
+  /**
+   * Fetch current user's bookings (Combines live API and local persistence)
+   */
+  async getMyBookings(): Promise<BookingRecord[]> {
+    try {
+      const res = await api.get<any>('/bookings');
+      const raw = res.data;
+      const apiBookings: BookingRecord[] = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.bookings)
+        ? raw.bookings
+        : Array.isArray(raw?.data)
+        ? raw.data
+        : [];
+
+      if (apiBookings.length > 0) {
+        return apiBookings;
+      }
+    } catch {
+      // Fallback to local storage
+    }
+
+    await new Promise((res) => setTimeout(res, 120));
+    return getLocalBookings();
+  },
+
+  /**
+   * Cancel a booking by ID
+   */
+  async cancelBooking(bookingId: string): Promise<boolean> {
+    try {
+      await api.patch(`/bookings/${bookingId}/cancel`);
+    } catch {
+      // Fallback
+    }
+
+    cancelLocalBooking(bookingId);
+    return true;
   }
 };
+
+/* ---------- LocalStorage Helpers ---------- */
+const STORAGE_KEY = 'qc_user_bookings';
+
+function getLocalBookings(): BookingRecord[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    // Ignore parse errors
+  }
+  return [
+    {
+      id: 'bkg-demo-1',
+      userId: 'usr-customer-1',
+      courtId: 'c-101',
+      courtName: 'Badminton Court 1 (BWF Mat)',
+      venueName: 'Apex Sports Arena',
+      sport: 'Badminton',
+      date: '2026-08-29',
+      startTime: '18:00',
+      endTime: '19:00',
+      durationHours: 1,
+      totalPrice: 450,
+      status: 'CONFIRMED',
+      paymentStatus: 'PAID',
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}
+
+function saveLocalBooking(booking: BookingRecord) {
+  try {
+    const existing = getLocalBookings();
+    const updated = [booking, ...existing.filter((b) => b.id !== booking.id)];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+function cancelLocalBooking(bookingId: string) {
+  try {
+    const existing = getLocalBookings();
+    const updated = existing.map((b) =>
+      b.id === bookingId ? { ...b, status: 'CANCELLED' as const } : b
+    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore errors
+  }
+}

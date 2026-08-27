@@ -9,9 +9,11 @@ export interface AuthUser {
   name: string;
   email: string;
   avatar?: string;
+  phone?: string;
   role: UserRole;
   status: UserStatus;
   emailVerified: boolean;
+  createdAt?: string;
 }
 
 interface AuthState {
