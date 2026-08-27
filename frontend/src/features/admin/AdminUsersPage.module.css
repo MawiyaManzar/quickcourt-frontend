@@ -1,0 +1,157 @@
+.container {
+  padding: var(--space-8, 2rem);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.pageHeader {
+  margin-bottom: var(--space-6, 1.5rem);
+}
+
+.title {
+  font-size: var(--text-2xl, 1.5rem);
+  font-weight: 700;
+  color: var(--color-text, #fff);
+}
+
+.filterBar {
+  background: var(--color-surface, #1a1d2e);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 16px);
+  padding: var(--space-4, 1rem) var(--space-6, 1.5rem);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: var(--space-6, 1.5rem);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 220px;
+}
+
+.selectInput {
+  background: var(--color-surface-2, #242838);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-md, 10px);
+  padding: 0.6rem 1rem;
+  color: var(--color-text, #fff);
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.tableCard {
+  background: var(--color-surface, #1a1d2e);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 16px);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.table th {
+  background: var(--color-surface-2, #242838);
+  padding: 1rem 1.25rem;
+  color: var(--color-text-muted, #9ca3af);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: var(--text-xs, 0.75rem);
+  letter-spacing: 0.05em;
+}
+
+.table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.05));
+  color: var(--color-text, #fff);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.userCell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary, #2ecc71);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.userName {
+  font-weight: 600;
+}
+
+.userEmail {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.badgeActive {
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+}
+
+.badgeBanned {
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modalCard {
+  background: var(--color-surface, #1a1d2e);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-lg, 16px);
+  width: 100%;
+  max-width: 500px;
+  padding: var(--space-6, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+}
+
+.modalTitle {
+  font-size: var(--text-lg, 1.125rem);
+  font-weight: 700;
+  color: var(--color-text, #fff);
+}
