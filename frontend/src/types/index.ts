@@ -3,6 +3,7 @@
 /* ---- Enums ---- */
 export type UserRole    = 'USER' | 'FACILITY_OWNER' | 'ADMIN';
 export type UserStatus  = 'ACTIVE' | 'BANNED';
+export type AuthUser    = User;
 
 export type FacilityStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type CourtStatus    = 'ACTIVE'  | 'INACTIVE';
