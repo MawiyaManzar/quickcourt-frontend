@@ -2,8 +2,9 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { mockUsers, mockOtps } from '../data/mockStore';
-import { User, Role, OtpVerification } from '../types';
+import { db } from '../db';
+import { users, otpVerifications } from '../db/schema';
+import { eq, and } from 'drizzle-orm';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'quickcourt_secret_jwt_key_hackathon_2026';
@@ -40,42 +41,36 @@ export const register = async (req: Request, res: Response) => {
   try {
     const parsed = registerSchema.parse(req.body);
     const emailLower = parsed.email.toLowerCase();
-    const existing = mockUsers.find((u) => u.email.toLowerCase() === emailLower);
+
+    // Check if user already exists
+    const [existing] = await db.select().from(users).where(eq(users.email, emailLower)).limit(1);
     
     if (existing) {
       return res.status(400).json({ success: false, message: 'Email is already registered' });
     }
 
     const passwordHash = await bcrypt.hash(parsed.password, 10);
-    const newUser: User = {
-      id: `usr-${Date.now()}`,
+    
+    const [newUser] = await db.insert(users).values({
       name: parsed.name,
       email: emailLower,
       passwordHash,
-      role: parsed.role as Role,
-      status: 'ACTIVE',
-      isVerified: false,
+      role: parsed.role,
+      avatarUrl: parsed.profileImage || null,
       emailVerified: false,
-      profileImage: parsed.profileImage,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    mockUsers.push(newUser);
+      status: 'ACTIVE',
+    }).returning();
 
     // Generate 6-digit OTP code with 10-minute expiry
     const otpCode = generate6DigitOtp();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    const otpRecord: OtpVerification = {
-      id: `otp-${Date.now()}`,
-      email: emailLower,
+    await db.insert(otpVerifications).values({
+      userId: newUser.id,
       code: otpCode,
-      expiresAt,
-      createdAt: new Date().toISOString(),
-    };
-
-    mockOtps.push(otpRecord);
+      expiresAt: expiresAt,
+      attempts: 0,
+    });
 
     console.log(`\n==================================================`);
     console.log(`📩 [GMAIL OTP SENT] To: ${emailLower} | Code: ${otpCode}`);
@@ -97,32 +92,37 @@ export const verifyOtp = async (req: Request, res: Response) => {
     const { email, code } = verifyOtpSchema.parse(req.body);
     const emailLower = email.toLowerCase();
 
-    const otpIndex = mockOtps.findIndex(
-      (o) => o.email.toLowerCase() === emailLower && o.code === code
-    );
-
-    if (otpIndex === -1) {
-      return res.status(400).json({ success: false, message: 'Invalid or expired OTP code' });
-    }
-
-    const otp = mockOtps[otpIndex];
-    if (new Date(otp.expiresAt) < new Date()) {
-      mockOtps.splice(otpIndex, 1);
-      return res.status(400).json({ success: false, message: 'OTP has expired. Please request a new one.' });
-    }
-
-    const user = mockUsers.find((u) => u.email.toLowerCase() === emailLower);
+    // Find the user
+    const [user] = await db.select().from(users).where(eq(users.email, emailLower)).limit(1);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    user.isVerified = true;
-    user.emailVerified = true;
-    user.status = 'ACTIVE';
-    user.updatedAt = new Date().toISOString();
+    // Find the active OTP for this user
+    const [otpRecord] = await db
+      .select()
+      .from(otpVerifications)
+      .where(and(eq(otpVerifications.userId, user.id), eq(otpVerifications.code, code)))
+      .limit(1);
 
-    // Clean up used OTP
-    mockOtps.splice(otpIndex, 1);
+    if (!otpRecord) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP code' });
+    }
+
+    if (new Date(otpRecord.expiresAt) < new Date()) {
+      await db.delete(otpVerifications).where(eq(otpVerifications.id, otpRecord.id));
+      return res.status(400).json({ success: false, message: 'OTP has expired. Please request a new one.' });
+    }
+
+    // Verify user
+    await db.update(users).set({
+      emailVerified: true,
+      status: 'ACTIVE',
+      updatedAt: new Date(),
+    }).where(eq(users.id, user.id));
+
+    // Clean up all OTPs for this user
+    await db.delete(otpVerifications).where(eq(otpVerifications.userId, user.id));
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
@@ -139,9 +139,9 @@ export const verifyOtp = async (req: Request, res: Response) => {
           name: user.name,
           email: user.email,
           role: user.role,
-          status: user.status,
-          isVerified: user.isVerified,
-          emailVerified: user.emailVerified,
+          status: 'ACTIVE',
+          isVerified: true,
+          emailVerified: true,
         },
         token,
       },
@@ -157,31 +157,25 @@ export const resendOtp = async (req: Request, res: Response) => {
     const { email } = resendOtpSchema.parse(req.body);
     const emailLower = email.toLowerCase();
 
-    const user = mockUsers.find((u) => u.email.toLowerCase() === emailLower);
+    const [user] = await db.select().from(users).where(eq(users.email, emailLower)).limit(1);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User with this email does not exist' });
     }
 
     // Generate new OTP with 10-minute expiry
     const otpCode = generate6DigitOtp();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Invalidate previous OTPs for this email
-    for (let i = mockOtps.length - 1; i >= 0; i--) {
-      if (mockOtps[i].email.toLowerCase() === emailLower) {
-        mockOtps.splice(i, 1);
-      }
-    }
+    // Invalidate/delete previous OTPs for this user
+    await db.delete(otpVerifications).where(eq(otpVerifications.userId, user.id));
 
-    const otpRecord: OtpVerification = {
-      id: `otp-${Date.now()}`,
-      email: emailLower,
+    // Save the new OTP
+    await db.insert(otpVerifications).values({
+      userId: user.id,
       code: otpCode,
-      expiresAt,
-      createdAt: new Date().toISOString(),
-    };
-
-    mockOtps.push(otpRecord);
+      expiresAt: expiresAt,
+      attempts: 0,
+    });
 
     console.log(`\n==================================================`);
     console.log(`📩 [RESEND GMAIL OTP] To: ${emailLower} | Code: ${otpCode}`);
@@ -201,7 +195,7 @@ export const resendOtp = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
-    const user = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -233,9 +227,9 @@ export const login = async (req: Request, res: Response) => {
         email: user.email,
         role: user.role,
         status: user.status,
-        isVerified: user.isVerified,
-        emailVerified: user.emailVerified ?? true,
-        profileImage: user.profileImage,
+        isVerified: user.emailVerified,
+        emailVerified: user.emailVerified,
+        profileImage: user.avatarUrl,
       },
     });
   } catch (error: any) {
@@ -243,10 +237,11 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const getCurrentUser = (req: AuthenticatedRequest, res: Response) => {
+// 🔹 GET /api/auth/me
+export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
-  const user = mockUsers.find((u) => u.id === req.user?.id);
+  const [user] = await db.select().from(users).where(eq(users.id, req.user.id)).limit(1);
   if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
   return res.json({
@@ -257,9 +252,9 @@ export const getCurrentUser = (req: AuthenticatedRequest, res: Response) => {
       email: user.email,
       role: user.role,
       status: user.status,
-      isVerified: user.isVerified,
-      emailVerified: user.emailVerified ?? true,
-      profileImage: user.profileImage,
+      isVerified: user.emailVerified,
+      emailVerified: user.emailVerified,
+      profileImage: user.avatarUrl,
     },
   });
 };

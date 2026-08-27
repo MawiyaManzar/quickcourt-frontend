@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import { z } from 'zod';
-import { mockUsers } from '../data/mockStore';
+import { db } from '../db';
+import { users } from '../db/schema';
+import { eq, and, ne } from 'drizzle-orm';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 const updateProfileSchema = z.object({
@@ -10,10 +12,10 @@ const updateProfileSchema = z.object({
 });
 
 // GET /api/users/profile - Get profile (PRD 12)
-export const getUserProfile = (req: AuthenticatedRequest, res: Response) => {
+export const getUserProfile = async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
-  const user = mockUsers.find((u) => u.id === req.user?.id);
+  const [user] = await db.select().from(users).where(eq(users.id, req.user.id)).limit(1);
   if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
   return res.json({
@@ -24,39 +26,47 @@ export const getUserProfile = (req: AuthenticatedRequest, res: Response) => {
       email: user.email,
       role: user.role,
       status: user.status,
-      isVerified: user.isVerified,
-      profileImage: user.profileImage,
+      isVerified: user.emailVerified,
+      profileImage: user.avatarUrl,
       createdAt: user.createdAt,
     },
   });
 };
 
 // PATCH /api/users/profile - Edit name, email, profile image (PRD 12)
-export const updateUserProfile = (req: AuthenticatedRequest, res: Response) => {
+export const updateUserProfile = async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
-    const userIndex = mockUsers.findIndex((u) => u.id === req.user?.id);
-    if (userIndex === -1) return res.status(404).json({ success: false, message: 'User not found' });
+    const [user] = await db.select().from(users).where(eq(users.id, req.user.id)).limit(1);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     const parsed = updateProfileSchema.parse(req.body);
-    const user = mockUsers[userIndex];
 
     if (parsed.email && parsed.email.toLowerCase() !== user.email.toLowerCase()) {
       const emailLower = parsed.email.toLowerCase();
-      const existing = mockUsers.find((u) => u.email.toLowerCase() === emailLower && u.id !== user.id);
+      // Check if email is already in use by another user
+      const [existing] = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.email, emailLower), ne(users.id, user.id)))
+        .limit(1);
+      
       if (existing) {
         return res.status(400).json({ success: false, message: 'Email address is already in use by another account' });
       }
     }
 
-    const updatedUser = {
-      ...user,
-      ...parsed,
-      updatedAt: new Date().toISOString(),
-    };
-
-    mockUsers[userIndex] = updatedUser;
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        ...(parsed.name ? { name: parsed.name } : {}),
+        ...(parsed.email ? { email: parsed.email.toLowerCase() } : {}),
+        ...(parsed.profileImage !== undefined ? { avatarUrl: parsed.profileImage } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, user.id))
+      .returning();
 
     return res.json({
       success: true,
@@ -67,7 +77,7 @@ export const updateUserProfile = (req: AuthenticatedRequest, res: Response) => {
         email: updatedUser.email,
         role: updatedUser.role,
         status: updatedUser.status,
-        profileImage: updatedUser.profileImage,
+        profileImage: updatedUser.avatarUrl,
       },
     });
   } catch (error: any) {
