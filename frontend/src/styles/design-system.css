@@ -6,48 +6,48 @@
 
 /* ---- Color Tokens ----------------------------------------- */
 :root {
-  --color-primary:        #16a34a;   /* green-600 */
-  --color-primary-hover:  #15803d;   /* green-700 */
-  --color-primary-light:  #dcfce7;   /* green-100 */
-  --color-primary-soft:   rgba(22, 163, 74, 0.10);
+  --color-primary:        #2ecc71;   /* green */
+  --color-primary-hover:  #27ae60;   /* green dark */
+  --color-primary-light:  rgba(46, 204, 113, 0.2);
+  --color-primary-soft:   rgba(46, 204, 113, 0.12);
 
-  --color-bg:             #f8fafc;   /* slate-50 */
-  --color-bg-alt:         #f1f5f9;   /* slate-100 */
-  --color-surface:        #ffffff;
-  --color-surface-2:      #f8fafc;
-  --color-border:         #e2e8f0;   /* slate-200 */
-  --color-border-strong:  #cbd5e1;   /* slate-300 */
+  --color-bg:             #0F1117;   /* dark background */
+  --color-bg-alt:         #141722;
+  --color-surface:        #1A1D2E;   /* dark surface card */
+  --color-surface-2:      #242838;
+  --color-border:         rgba(255, 255, 255, 0.10);   /* subtle light border */
+  --color-border-strong:  rgba(255, 255, 255, 0.20);
 
-  --color-text:           #0f172a;   /* slate-900 */
-  --color-text-muted:     #64748b;   /* slate-500 */
-  --color-text-subtle:    #94a3b8;   /* slate-400 */
+  --color-text:           #FFFFFF;   /* white text */
+  --color-text-muted:     #9CA3AF;   /* slate-400 */
+  --color-text-subtle:    #64748B;
 
-  --color-error:          #dc2626;   /* red-600 */
-  --color-error-light:    #fee2e2;   /* red-100 */
-  --color-warning:        #d97706;   /* amber-600 */
-  --color-warning-light:  #fef3c7;
-  --color-success:        #16a34a;
-  --color-success-light:  #dcfce7;
-  --color-info:           #2563eb;
-  --color-info-light:     #dbeafe;
+  --color-error:          #ef4444;   /* red-500 */
+  --color-error-light:    rgba(239, 68, 68, 0.15);
+  --color-warning:        #f59e0b;   /* amber-500 */
+  --color-warning-light:  rgba(245, 158, 11, 0.15);
+  --color-success:        #10b981;
+  --color-success-light:  rgba(16, 185, 129, 0.15);
+  --color-info:           #3b82f6;
+  --color-info-light:     rgba(59, 130, 246, 0.15);
 
   /* Status colors */
-  --color-status-confirmed:   #2563eb;
-  --color-status-cancelled:   #dc2626;
-  --color-status-completed:   #16a34a;
-  --color-status-pending:     #d97706;
-  --color-status-approved:    #16a34a;
-  --color-status-rejected:    #dc2626;
-  --color-status-banned:      #dc2626;
-  --color-status-active:      #16a34a;
+  --color-status-confirmed:   #3b82f6;
+  --color-status-cancelled:   #ef4444;
+  --color-status-completed:   #10b981;
+  --color-status-pending:     #f59e0b;
+  --color-status-approved:    #10b981;
+  --color-status-rejected:    #ef4444;
+  --color-status-banned:      #ef4444;
+  --color-status-active:      #10b981;
 
   /* Slot colors (booking grid) */
-  --color-slot-available:     #dcfce7;
-  --color-slot-available-border: #86efac;
-  --color-slot-booked:        #e2e8f0;
-  --color-slot-blocked:       #fef3c7;
-  --color-slot-blocked-border: #fbbf24;
-  --color-slot-selected:      #16a34a;
+  --color-slot-available:     rgba(46, 204, 113, 0.12);
+  --color-slot-available-border: rgba(46, 204, 113, 0.35);
+  --color-slot-booked:        rgba(255, 255, 255, 0.03);
+  --color-slot-blocked:       rgba(245, 158, 11, 0.12);
+  --color-slot-blocked-border: rgba(245, 158, 11, 0.35);
+  --color-slot-selected:      #2ecc71;
   --color-slot-selected-text: #ffffff;
 }
 

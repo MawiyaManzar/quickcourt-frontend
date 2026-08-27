@@ -49,10 +49,17 @@ export const authApi = {
   // ---- Register ----
   register: async (payload: RegisterPayload): Promise<AuthResponse> => {
     try {
-      const res = await api.post<AuthResponse>('/auth/register', payload);
-      return res.data;
+      const res = await api.post<any>('/auth/register', payload);
+      const raw = res.data;
+      return {
+        success: raw.success ?? true,
+        message: raw.message || 'OTP sent to your email address.',
+        data: {
+          user: raw.data?.user || raw.user || mockUser(payload.email, payload.name, payload.role),
+          token: raw.data?.token || raw.token || '',
+        },
+      };
     } catch (err: any) {
-      // If backend offline in dev mode, simulate successful registration response
       if (!err.response || err.code === 'ERR_NETWORK') {
         console.warn('Backend unavailable. Using dev mock response for registration.');
         return {
@@ -64,15 +71,23 @@ export const authApi = {
           },
         };
       }
-      throw new Error(err.response?.data?.message || 'Registration failed');
+      throw new Error(err.response?.data?.message || err.response?.data?.error || 'Registration failed');
     }
   },
 
   // ---- Verify OTP ----
   verifyOtp: async (email: string, otp: string): Promise<OtpResponse> => {
     try {
-      const res = await api.post<OtpResponse>('/auth/verify-otp', { email, code: otp });
-      return res.data;
+      const res = await api.post<any>('/auth/verify-otp', { email, code: otp });
+      const raw = res.data;
+      return {
+        success: raw.success ?? true,
+        message: raw.message || 'OTP verified successfully.',
+        data: {
+          user: raw.data?.user || raw.user,
+          token: raw.data?.token || raw.token,
+        },
+      };
     } catch (err: any) {
       if (!err.response || err.code === 'ERR_NETWORK') {
         console.warn('Backend unavailable. Using dev mock response for OTP verification.');
@@ -88,19 +103,31 @@ export const authApi = {
         }
         throw new Error('Invalid OTP code. Try 123456');
       }
-      throw new Error(err.response?.data?.message || 'OTP verification failed');
+      throw new Error(err.response?.data?.message || err.response?.data?.error || 'OTP verification failed');
     }
   },
 
   // ---- Login ----
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
     try {
-      const res = await api.post<AuthResponse>('/auth/login', payload);
-      return res.data;
+      const res = await api.post<any>('/auth/login', payload);
+      const raw = res.data;
+
+      const user = raw.data?.user || raw.user;
+      const token = raw.data?.token || raw.token;
+
+      if (!user || !token) {
+        throw new Error(raw.message || 'Invalid server response during login');
+      }
+
+      return {
+        success: raw.success ?? true,
+        message: raw.message || 'Logged in successfully.',
+        data: { user, token },
+      };
     } catch (err: any) {
       if (!err.response || err.code === 'ERR_NETWORK') {
         console.warn('Backend unavailable. Using dev mock response for login.');
-        // Dev convenience logins
         let role: UserRole = 'USER';
         let name = 'Customer User';
         if (payload.email.includes('owner')) {
@@ -119,7 +146,7 @@ export const authApi = {
           },
         };
       }
-      throw new Error(err.response?.data?.message || 'Invalid email or password');
+      throw new Error(err.response?.data?.message || err.response?.data?.error || 'Invalid email or password');
     }
   },
 
@@ -132,7 +159,14 @@ export const authApi = {
       if (!err.response || err.code === 'ERR_NETWORK') {
         return { success: true, message: 'New OTP code sent to your email.' };
       }
-      throw new Error(err.response?.data?.message || 'Failed to resend OTP');
+      throw new Error(err.response?.data?.message || err.response?.data?.error || 'Failed to resend OTP');
     }
+  },
+
+  // ---- Get Current User Session ----
+  getCurrentUser: async (): Promise<AuthUser> => {
+    const res = await api.get<any>('/users/me');
+    const raw = res.data;
+    return raw.data?.user || raw.user || raw;
   },
 };

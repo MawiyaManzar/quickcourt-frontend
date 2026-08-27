@@ -75,14 +75,14 @@ export default function LoginPage() {
             <button
               type="button"
               className={styles.demoChip}
-              onClick={() => quickFill('customer@quickcourt.com')}
+              onClick={() => quickFill('player@quickcourt.com')}
             >
               👤 Customer
             </button>
             <button
               type="button"
               className={styles.demoChip}
-              onClick={() => quickFill('owner@arena.com')}
+              onClick={() => quickFill('owner@quickcourt.com')}
             >
               🏢 Owner
             </button>

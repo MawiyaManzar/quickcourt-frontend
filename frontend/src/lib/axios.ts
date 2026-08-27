@@ -5,8 +5,10 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api';
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true,          // send HTTP-only cookies if backend uses them
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+  },
   timeout: 15_000,
 });
 

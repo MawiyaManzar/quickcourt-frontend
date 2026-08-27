@@ -14,7 +14,7 @@ describe('venueService', () => {
     expect(res.venues.length).toBeGreaterThan(0);
     expect(res.venues.every((v) =>
       v.name.toLowerCase().includes('badminton') ||
-      v.tagline.toLowerCase().includes('badminton') ||
+      v.tagline?.toLowerCase().includes('badminton') ||
       v.description.toLowerCase().includes('badminton') ||
       v.sports.includes('Badminton')
     )).toBe(true);

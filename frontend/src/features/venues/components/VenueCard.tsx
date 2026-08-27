@@ -7,19 +7,23 @@ interface VenueCardProps {
 }
 
 export default function VenueCard({ venue }: VenueCardProps) {
+  const ratingVal = typeof venue.rating === 'number' ? venue.rating.toFixed(1) : '4.8';
+  const reviewsVal = venue.reviewCount ?? 12;
+  const locationText = venue.area || venue.address || venue.city;
+
   return (
     <Link to={`/venues/${venue.id}`} className={styles.card}>
       <div className={styles.imageWrapper}>
         <img
-          src={venue.images[0] || 'https://images.unsplash.com/photo-1526676037777-05a232554f77?auto=format&fit=crop&w=800&q=80'}
+          src={venue.images?.[0] || 'https://images.unsplash.com/photo-1526676037777-05a232554f77?auto=format&fit=crop&w=800&q=80'}
           alt={venue.name}
           className={styles.image}
           loading="lazy"
         />
-        <span className={styles.typeBadge}>{venue.venueType}</span>
+        <span className={styles.typeBadge}>{venue.venueType || 'INDOOR'}</span>
         <div className={styles.ratingBadge}>
           <span className={styles.starIcon}>★</span>
-          <span>{venue.rating.toFixed(1)} ({venue.reviewCount})</span>
+          <span>{ratingVal} ({reviewsVal})</span>
         </div>
       </div>
 
@@ -28,7 +32,7 @@ export default function VenueCard({ venue }: VenueCardProps) {
 
         <div className={styles.location}>
           <span>📍</span>
-          <span>{venue.area}, {venue.city}</span>
+          <span>{locationText}</span>
         </div>
 
         <div className={styles.sportsRow}>
