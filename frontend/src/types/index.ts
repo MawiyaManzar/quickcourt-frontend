@@ -1,4 +1,4 @@
-// Shared TypeScript types for the entire QuickCourt frontend
+ // Shared TypeScript types for the entire QuickCourt frontend
 
 /* ---- Enums ---- */
 export type UserRole    = 'USER' | 'FACILITY_OWNER' | 'ADMIN';
