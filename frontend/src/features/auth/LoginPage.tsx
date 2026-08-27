@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
@@ -10,6 +10,8 @@ import styles from './LoginPage.module.css';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const setAuth = useAuthStore((s) => s.setAuth);
 
   const [email, setEmail] = useState('');
@@ -44,7 +46,9 @@ export default function LoginPage() {
       setAuth(res.data.user, res.data.token);
       const role = res.data.user.role;
 
-      if (role === 'FACILITY_OWNER') navigate('/owner');
+      // Redirect to pending booking page or role default
+      if (redirectTo) navigate(redirectTo);
+      else if (role === 'FACILITY_OWNER') navigate('/owner');
       else if (role === 'ADMIN') navigate('/admin');
       else navigate('/');
     } catch (err: any) {

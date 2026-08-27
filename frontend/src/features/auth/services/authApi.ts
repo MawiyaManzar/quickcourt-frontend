@@ -55,23 +55,12 @@ export const authApi = {
         success: raw.success ?? true,
         message: raw.message || 'OTP sent to your email address.',
         data: {
-          user: raw.data?.user || raw.user || mockUser(payload.email, payload.name, payload.role),
+          user: raw.data?.user || raw.user,
           token: raw.data?.token || raw.token || '',
         },
       };
     } catch (err: any) {
-      if (!err.response || err.code === 'ERR_NETWORK') {
-        console.warn('Backend unavailable. Using dev mock response for registration.');
-        return {
-          success: true,
-          message: 'OTP sent to your email address.',
-          data: {
-            user: mockUser(payload.email, payload.name, payload.role),
-            token: 'mock_jwt_token_' + Date.now(),
-          },
-        };
-      }
-      throw new Error(err.response?.data?.message || err.response?.data?.error || 'Registration failed');
+      throw new Error(err.response?.data?.message || err.response?.data?.error || err.message || 'Registration failed');
     }
   },
 
@@ -89,21 +78,7 @@ export const authApi = {
         },
       };
     } catch (err: any) {
-      if (!err.response || err.code === 'ERR_NETWORK') {
-        console.warn('Backend unavailable. Using dev mock response for OTP verification.');
-        if (otp === '123456' || otp.length === 6) {
-          return {
-            success: true,
-            message: 'OTP verified successfully.',
-            data: {
-              user: mockUser(email, 'Verified User', 'USER'),
-              token: 'mock_jwt_token_' + Date.now(),
-            },
-          };
-        }
-        throw new Error('Invalid OTP code. Try 123456');
-      }
-      throw new Error(err.response?.data?.message || err.response?.data?.error || 'OTP verification failed');
+      throw new Error(err.response?.data?.message || err.response?.data?.error || err.message || 'OTP verification failed');
     }
   },
 
@@ -126,27 +101,7 @@ export const authApi = {
         data: { user, token },
       };
     } catch (err: any) {
-      if (!err.response || err.code === 'ERR_NETWORK') {
-        console.warn('Backend unavailable. Using dev mock response for login.');
-        let role: UserRole = 'USER';
-        let name = 'Customer User';
-        if (payload.email.includes('owner')) {
-          role = 'FACILITY_OWNER';
-          name = 'Arena Owner';
-        } else if (payload.email.includes('admin')) {
-          role = 'ADMIN';
-          name = 'System Admin';
-        }
-        return {
-          success: true,
-          message: 'Logged in successfully.',
-          data: {
-            user: mockUser(payload.email, name, role),
-            token: 'mock_jwt_token_' + Date.now(),
-          },
-        };
-      }
-      throw new Error(err.response?.data?.message || err.response?.data?.error || 'Invalid email or password');
+      throw new Error(err.response?.data?.message || err.response?.data?.error || err.message || 'Invalid email or password');
     }
   },
 
@@ -156,10 +111,7 @@ export const authApi = {
       const res = await api.post('/auth/resend-otp', { email });
       return res.data;
     } catch (err: any) {
-      if (!err.response || err.code === 'ERR_NETWORK') {
-        return { success: true, message: 'New OTP code sent to your email.' };
-      }
-      throw new Error(err.response?.data?.message || err.response?.data?.error || 'Failed to resend OTP');
+      throw new Error(err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to resend OTP');
     }
   },
 

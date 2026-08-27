@@ -27,33 +27,13 @@ export const adminService = {
       const res = await api.get<any>('/admin/dashboard');
       const raw = res.data;
       const data = raw?.data || raw;
-      if (data && typeof data.totalUsers === 'number') {
+      if (data) {
         return data as AdminDashboard;
       }
-    } catch {
-      // Fallback
+      throw new Error('Invalid dashboard response format');
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch admin dashboard');
     }
-
-    await new Promise((r) => setTimeout(r, 120));
-
-    return {
-      totalUsers: 1250,
-      totalOwners: 203,
-      totalBookings: 3245,
-      activeCourts: 645,
-      bookingTrend: [
-        { date: 'Mon', bookings: 120, revenue: 60000 },
-        { date: 'Tue', bookings: 180, revenue: 90000 },
-        { date: 'Wed', bookings: 150, revenue: 75000 },
-        { date: 'Thu', bookings: 220, revenue: 110000 },
-        { date: 'Fri', bookings: 350, revenue: 175000 },
-        { date: 'Sat', bookings: 540, revenue: 270000 },
-        { date: 'Sun', bookings: 480, revenue: 240000 },
-      ],
-      userTrend: [],
-      sportBreakdown: [],
-      pendingFacilities: 3,
-    };
   },
 
   /**
@@ -64,49 +44,13 @@ export const adminService = {
       const res = await api.get<any>('/admin/analytics', { params: { range: timeRange } });
       const raw = res.data;
       const data = raw?.data || raw;
-      if (data && Array.isArray(data.bookingTrend)) {
+      if (data) {
         return data as AdminAnalyticsData;
       }
-    } catch {
-      // Fallback
+      throw new Error('Invalid analytics response format');
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch admin analytics');
     }
-
-    await new Promise((r) => setTimeout(r, 120));
-
-    return {
-      timeRange,
-      bookingTrend: [
-        { date: 'Week 1', bookings: 450, revenue: 225000 },
-        { date: 'Week 2', bookings: 620, revenue: 310000 },
-        { date: 'Week 3', bookings: 780, revenue: 390000 },
-        { date: 'Week 4', bookings: 920, revenue: 460000 },
-      ],
-      userTrend: [
-        { date: 'Week 1', users: 80 },
-        { date: 'Week 2', users: 115 },
-        { date: 'Week 3', users: 140 },
-        { date: 'Week 4', users: 195 },
-      ],
-      facilityApprovalTrend: [
-        { month: 'May', submitted: 15, approved: 12, rejected: 3 },
-        { month: 'Jun', submitted: 22, approved: 18, rejected: 4 },
-        { month: 'Jul', submitted: 28, approved: 24, rejected: 4 },
-        { month: 'Aug', submitted: 35, approved: 30, rejected: 5 },
-      ],
-      sportBreakdown: [
-        { sport: 'BADMINTON', count: 1450, revenue: 725000 },
-        { sport: 'TENNIS', count: 820, revenue: 492000 },
-        { sport: 'FOOTBALL', count: 540, revenue: 378000 },
-        { sport: 'CRICKET', count: 280, revenue: 196000 },
-        { sport: 'BASKETBALL', count: 155, revenue: 77500 },
-      ],
-      revenueSimulation: [
-        { month: 'May', revenue: 450000 },
-        { month: 'Jun', revenue: 620000 },
-        { month: 'Jul', revenue: 780000 },
-        { month: 'Aug', revenue: 950000 },
-      ],
-    };
   },
 
   /**
@@ -124,39 +68,34 @@ export const adminService = {
         : Array.isArray(raw?.data)
         ? raw.data
         : [];
-      if (list.length > 0) return list;
-    } catch {
-      // Fallback
+      return list;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch admin facilities');
     }
-
-    await new Promise((r) => setTimeout(r, 100));
-    return getLocalAdminFacilities(status);
   },
 
   /**
-   * Approve a Facility (makes it publicly visible)
+   * Approve a Facility
    */
   async approveFacility(id: string): Promise<boolean> {
     try {
       await api.patch(`/admin/facilities/${id}/approve`);
-    } catch {
-      // Fallback
+      return true;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to approve facility');
     }
-    updateLocalFacilityStatus(id, 'APPROVED');
-    return true;
   },
 
   /**
-   * Reject a Facility with compliance reason
+   * Reject a Facility
    */
   async rejectFacility(id: string, reason: string): Promise<boolean> {
     try {
       await api.patch(`/admin/facilities/${id}/reject`, { reason });
-    } catch {
-      // Fallback
+      return true;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to reject facility');
     }
-    updateLocalFacilityStatus(id, 'REJECTED', reason);
-    return true;
   },
 
   /**
@@ -173,13 +112,10 @@ export const adminService = {
         : Array.isArray(raw?.data)
         ? raw.data
         : [];
-      if (list.length > 0) return list;
-    } catch {
-      // Fallback
+      return list;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch admin users');
     }
-
-    await new Promise((r) => setTimeout(r, 100));
-    return getLocalAdminUsers(params);
   },
 
   /**
@@ -188,11 +124,10 @@ export const adminService = {
   async banUser(id: string): Promise<boolean> {
     try {
       await api.patch(`/admin/users/${id}/ban`);
-    } catch {
-      // Fallback
+      return true;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to ban user');
     }
-    updateLocalUserStatus(id, 'BANNED');
-    return true;
   },
 
   /**
@@ -201,11 +136,10 @@ export const adminService = {
   async unbanUser(id: string): Promise<boolean> {
     try {
       await api.patch(`/admin/users/${id}/unban`);
-    } catch {
-      // Fallback
+      return true;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to unban user');
     }
-    updateLocalUserStatus(id, 'ACTIVE');
-    return true;
   },
 
   /**
@@ -222,13 +156,10 @@ export const adminService = {
         : Array.isArray(raw?.data)
         ? raw.data
         : [];
-      if (list.length > 0) return list;
-    } catch {
-      // Fallback
+      return list;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch platform bookings');
     }
-
-    await new Promise((r) => setTimeout(r, 120));
-    return getLocalPlatformBookings();
   },
 };
 

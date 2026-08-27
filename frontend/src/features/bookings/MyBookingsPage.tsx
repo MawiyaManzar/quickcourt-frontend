@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/ui/Button';
+import { Skeleton } from '../../components/ui/Skeleton';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { bookingService } from './services/bookingService';
 import type { BookingRecord } from './types';
 import styles from './MyBookingsPage.module.css';
@@ -89,18 +91,19 @@ export default function MyBookingsPage() {
 
       {/* Content Cards */}
       {isLoading ? (
-        <div style={{ height: 240, background: 'var(--color-surface)', borderRadius: '16px', opacity: 0.6 }} />
-      ) : currentList.length === 0 ? (
-        <div className={styles.emptyState}>
-          <span className={styles.emptyIcon}>📅</span>
-          <h2 className={styles.emptyTitle}>
-            No {activeTab.toLowerCase()} bookings found
-          </h2>
-          <p className={styles.emptyText}>
-            Ready to play? Search for top sports venues near you and reserve your preferred court in seconds.
-          </p>
-          <Button onClick={() => navigate('/venues')}>Explore Venues</Button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <Skeleton height={100} borderRadius={16} />
+          <Skeleton height={100} borderRadius={16} />
         </div>
+      ) : currentList.length === 0 ? (
+        <EmptyState
+          icon="📅"
+          title={`No ${activeTab.toLowerCase()} bookings found`}
+          description="Ready to play? Search for top sports venues near you and reserve your preferred court in seconds."
+          action={
+            <Button onClick={() => navigate('/venues')}>Explore Venues</Button>
+          }
+        />
       ) : (
         <div className={styles.cardsList}>
           {currentList.map((item) => {

@@ -48,43 +48,13 @@ export const ownerService = {
       const res = await api.get<any>('/owner/analytics');
       const raw = res.data;
       const data = raw?.data || raw;
-      if (data && typeof data.totalBookings === 'number') {
+      if (data) {
         return data as OwnerAnalytics;
       }
-    } catch {
-      // Fallback mock analytics
+      throw new Error('Invalid analytics response format');
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch owner analytics');
     }
-
-    await new Promise((r) => setTimeout(r, 120));
-
-    return {
-      totalBookings: 245,
-      activeCourts: 12,
-      monthlyEarnings: 125000,
-      upcomingBookings: 32,
-      bookingTrend: [
-        { date: 'Mon', bookings: 12, revenue: 6000 },
-        { date: 'Tue', bookings: 18, revenue: 9000 },
-        { date: 'Wed', bookings: 15, revenue: 7500 },
-        { date: 'Thu', bookings: 22, revenue: 11000 },
-        { date: 'Fri', bookings: 35, revenue: 17500 },
-        { date: 'Sat', bookings: 54, revenue: 27000 },
-        { date: 'Sun', bookings: 48, revenue: 24000 },
-      ],
-      peakHours: [
-        { hour: '06:00', day: 'Mon', value: 3 },
-        { hour: '08:00', day: 'Mon', value: 8 },
-        { hour: '18:00', day: 'Fri', value: 15 },
-        { hour: '19:00', day: 'Sat', value: 18 },
-        { hour: '20:00', day: 'Sun', value: 14 },
-      ],
-      sportBreakdown: [
-        { sport: 'BADMINTON', count: 120, revenue: 60000 },
-        { sport: 'TENNIS', count: 65, revenue: 39000 },
-        { sport: 'FOOTBALL', count: 40, revenue: 20000 },
-        { sport: 'CRICKET', count: 20, revenue: 6000 },
-      ],
-    };
   },
 
   /**
@@ -101,13 +71,10 @@ export const ownerService = {
         : Array.isArray(raw?.data)
         ? raw.data
         : [];
-      if (list.length > 0) return list;
-    } catch {
-      // Fallback
+      return list;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch your facilities');
     }
-
-    await new Promise((r) => setTimeout(r, 100));
-    return getLocalFacilities();
   },
 
   /**
@@ -118,13 +85,11 @@ export const ownerService = {
       const res = await api.get<any>(`/facilities/${id}`);
       const raw = res.data;
       const fac = raw?.facility || raw?.data || raw;
-      if (fac && fac.id) return fac as Facility;
-    } catch {
-      // Fallback
+      if (fac && (fac.id || fac._id)) return fac as Facility;
+      return null;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || `Failed to fetch facility ${id}`);
     }
-
-    const local = getLocalFacilities();
-    return local.find((f) => f.id === id) || local[0] || null;
   },
 
   /**
@@ -135,39 +100,13 @@ export const ownerService = {
       const res = await api.post<any>('/facilities', payload);
       const raw = res.data;
       const fac = raw?.facility || raw?.data || raw;
-      if (fac && fac.id) {
-        saveLocalFacility(fac as Facility);
+      if (fac) {
         return fac as Facility;
       }
-    } catch {
-      // Fallback
+      throw new Error(raw.message || 'Failed to create facility');
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to create facility');
     }
-
-    await new Promise((r) => setTimeout(r, 150));
-
-    const newFac: Facility = {
-      id: 'fac-' + Math.random().toString(36).substring(2, 8),
-      ownerId: 'usr-owner-1',
-      name: payload.name,
-      description: payload.description,
-      address: payload.address,
-      location: payload.location,
-      status: 'PENDING',
-      sports: payload.sports,
-      amenities: payload.amenities,
-      images:
-        payload.images.length > 0
-          ? payload.images
-          : [
-              'https://images.unsplash.com/photo-1626225967045-9440882269ab?auto=format&fit=crop&w=600&q=80',
-            ],
-      startingPrice: 500,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    saveLocalFacility(newFac);
-    return newFac;
   },
 
   /**
@@ -181,38 +120,13 @@ export const ownerService = {
       const res = await api.patch<any>(`/facilities/${id}`, payload);
       const raw = res.data;
       const fac = raw?.facility || raw?.data || raw;
-      if (fac && fac.id) {
-        saveLocalFacility(fac as Facility);
+      if (fac) {
         return fac as Facility;
       }
-    } catch {
-      // Fallback
+      throw new Error(raw.message || 'Failed to update facility');
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to update facility');
     }
-
-    await new Promise((r) => setTimeout(r, 150));
-
-    const existing = getLocalFacilities().find((f) => f.id === id);
-    const updated: Facility = {
-      ...(existing || {
-        id,
-        ownerId: 'usr-owner-1',
-        name: payload.name || 'Updated Facility',
-        description: '',
-        address: '',
-        location: '',
-        status: 'PENDING',
-        sports: [],
-        amenities: [],
-        images: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }),
-      ...payload,
-      updatedAt: new Date().toISOString(),
-    };
-
-    saveLocalFacility(updated);
-    return updated;
   },
 
   /**
@@ -221,11 +135,10 @@ export const ownerService = {
   async deleteFacility(id: string): Promise<boolean> {
     try {
       await api.delete(`/facilities/${id}`);
-    } catch {
-      // Fallback
+      return true;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to delete facility');
     }
-    deleteLocalFacility(id);
-    return true;
   },
 
   /**
@@ -242,13 +155,10 @@ export const ownerService = {
         : Array.isArray(raw?.data)
         ? raw.data
         : [];
-      if (list.length > 0) return list;
-    } catch {
-      // Fallback
+      return list;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch courts');
     }
-
-    await new Promise((r) => setTimeout(r, 100));
-    return getLocalCourts(facilityId);
   },
 
   /**
@@ -259,31 +169,13 @@ export const ownerService = {
       const res = await api.post<any>(`/facilities/${payload.facilityId}/courts`, payload);
       const raw = res.data;
       const court = raw?.court || raw?.data || raw;
-      if (court && court.id) {
-        saveLocalCourt(court as Court);
+      if (court) {
         return court as Court;
       }
-    } catch {
-      // Fallback
+      throw new Error(raw.message || 'Failed to create court');
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to create court');
     }
-
-    await new Promise((r) => setTimeout(r, 150));
-
-    const newCourt: Court = {
-      id: 'crt-' + Math.random().toString(36).substring(2, 8),
-      facilityId: payload.facilityId,
-      name: payload.name,
-      sportType: payload.sportType,
-      pricePerHour: payload.pricePerHour,
-      openingTime: payload.openingTime,
-      closingTime: payload.closingTime,
-      status: payload.status,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    saveLocalCourt(newCourt);
-    return newCourt;
   },
 
   /**
@@ -294,36 +186,13 @@ export const ownerService = {
       const res = await api.patch<any>(`/courts/${id}`, payload);
       const raw = res.data;
       const court = raw?.court || raw?.data || raw;
-      if (court && court.id) {
-        saveLocalCourt(court as Court);
+      if (court) {
         return court as Court;
       }
-    } catch {
-      // Fallback
+      throw new Error(raw.message || 'Failed to update court');
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to update court');
     }
-
-    await new Promise((r) => setTimeout(r, 150));
-
-    const existing = (getLocalCourts() as Court[]).find((c) => c.id === id);
-    const updated: Court = {
-      ...(existing || {
-        id,
-        facilityId: payload.facilityId || 'fac-1',
-        name: 'Court',
-        sportType: 'BADMINTON',
-        pricePerHour: 500,
-        openingTime: '06:00',
-        closingTime: '22:00',
-        status: 'ACTIVE',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }),
-      ...payload,
-      updatedAt: new Date().toISOString(),
-    };
-
-    saveLocalCourt(updated);
-    return updated;
   },
 
   /**
@@ -332,54 +201,37 @@ export const ownerService = {
   async deleteCourt(id: string): Promise<boolean> {
     try {
       await api.delete(`/courts/${id}`);
-    } catch {
-      // Fallback
+      return true;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to delete court');
     }
-    deleteLocalCourt(id);
-    return true;
   },
 
   /**
-   * Get Time Slots state for a court
+   * Get Time Slots state for a court from live API
    */
   async getCourtSlots(courtId: string, date: string): Promise<TimeSlot[]> {
-    const blocks = getLocalBlocks().filter(
-      (b) => b.courtId === courtId && b.date === date
-    );
+    try {
+      const res = await api.get<any>(`/courts/${courtId}/availability`, { params: { date } });
+      const raw = res.data;
+      const rawArray: any[] = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.slots)
+        ? raw.slots
+        : Array.isArray(raw?.data)
+        ? raw.data
+        : [];
 
-    const slots: TimeSlot[] = [];
-
-    for (let hour = 6; hour < 23; hour++) {
-      const startStr = `${hour < 10 ? '0' : ''}${hour}:00`;
-      const endStr = `${hour + 1 < 10 ? '0' : ''}${hour + 1}:00`;
-
-      // Check if blocked by owner
-      const blockMatch = blocks.find(
-        (b) => b.startTime <= startStr && b.endTime >= endStr
-      );
-
-      let status: TimeSlot['status'] = 'AVAILABLE';
-      let blockReason: string | undefined = undefined;
-      let blockId: string | undefined = undefined;
-
-      if (blockMatch) {
-        status = 'BLOCKED';
-        blockReason = blockMatch.reason;
-        blockId = blockMatch.id;
-      } else if (hour === 18 || hour === 19) {
-        status = 'BOOKED';
-      }
-
-      slots.push({
-        startTime: startStr,
-        endTime: endStr,
-        status,
-        blockReason,
-        blockId,
-      });
+      return rawArray.map((s: any, idx: number) => ({
+        startTime: s.startTime || '00:00',
+        endTime: s.endTime || '00:00',
+        status: (s.status as any) || 'AVAILABLE',
+        blockReason: s.reason || s.blockReason,
+        blockId: s.blockId || s.id,
+      }));
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch court slots');
     }
-
-    return slots;
   },
 
   /**
@@ -390,42 +242,27 @@ export const ownerService = {
       const res = await api.post<any>(`/courts/${payload.courtId}/blocks`, payload);
       const raw = res.data;
       const block = raw?.block || raw?.data || raw;
-      if (block && block.id) {
-        saveLocalBlock(block as CourtBlock);
+      if (block) {
         return block as CourtBlock;
       }
-    } catch {
-      // Fallback
+      throw new Error(raw.message || 'Failed to block slot');
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to block slot');
     }
-
-    const newBlock: CourtBlock = {
-      id: 'blk-' + Math.random().toString(36).substring(2, 8),
-      courtId: payload.courtId,
-      date: payload.date,
-      startTime: payload.startTime,
-      endTime: payload.endTime,
-      reason: payload.reason,
-      createdAt: new Date().toISOString(),
-    };
-
-    saveLocalBlock(newBlock);
-    return newBlock;
   },
 
   /**
-   * Unblock a Time Slot (DELETE /api/court-blocks/:blockId)
+   * Unblock a Time Slot
    */
-  async unblockSlot(blockId: string, courtId?: string, date?: string, startTime?: string): Promise<boolean> {
+  async unblockSlot(blockId: string, _courtId?: string, _date?: string, _startTime?: string): Promise<boolean> {
     try {
       if (blockId) {
         await api.delete(`/court-blocks/${blockId}`);
       }
-    } catch {
-      // Fallback
+      return true;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to unblock slot');
     }
-
-    deleteLocalBlock(courtId, date, startTime, blockId);
-    return true;
   },
 
   /**
@@ -442,13 +279,10 @@ export const ownerService = {
         : Array.isArray(raw?.data)
         ? raw.data
         : [];
-      if (list.length > 0) return list;
-    } catch {
-      // Fallback
+      return list;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch owner bookings');
     }
-
-    await new Promise((r) => setTimeout(r, 120));
-    return getLocalOwnerBookings();
   },
 };
 

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import StepperWizard, { type StepItem } from '../../components/ui/StepperWizard';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { useAuthStore } from '../../stores/authStore';
 import { venueService } from '../venues/services/venueService';
 import { bookingService } from './services/bookingService';
 import type { Venue, Court, SportType } from '../venues/types';
@@ -11,6 +12,8 @@ import type { TimeSlot, SmartPick, BookingRecord } from './types';
 import SmartPicksBanner from './components/SmartPicksBanner';
 import SlotGrid from './components/SlotGrid';
 import styles from './BookingPage.module.css';
+
+const PENDING_BOOKING_KEY = 'qc_pending_booking';
 
 const WIZARD_STEPS: StepItem[] = [
   { id: 1, label: 'Sport' },
@@ -24,6 +27,8 @@ export default function BookingPage() {
   const { venueId } = useParams<{ venueId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const initialCourtId = searchParams.get('courtId');
 
@@ -53,6 +58,29 @@ export default function BookingPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [confirmedBooking, setConfirmedBooking] = useState<BookingRecord | null>(null);
 
+  // Helper: save pending booking state for guest users
+  const savePendingBooking = () => {
+    try {
+      sessionStorage.setItem(PENDING_BOOKING_KEY, JSON.stringify({
+        venueId,
+        courtId: selectedCourt?.id,
+        sport: selectedSport,
+        date: selectedDate,
+        slotIds: selectedSlotIds,
+        step: currentStep,
+      }));
+    } catch { /* ignore */ }
+  };
+
+  // Helper: require auth — if guest, save state & redirect to login
+  const requireAuth = (): boolean => {
+    if (isAuthenticated) return true;
+    savePendingBooking();
+    toast('Please log in or sign up to complete your court reservation', { icon: '🔒' });
+    navigate(`/auth/login?redirect=${encodeURIComponent(location.pathname + location.search)}`);
+    return false;
+  };
+
   // Load venue details on mount
   useEffect(() => {
     if (!venueId) return;
@@ -74,9 +102,31 @@ export default function BookingPage() {
             setCurrentStep(3); // Jump to Date & Time slot selection
           }
         }
+
+        // Restore pending booking if user just logged in
+        try {
+          const raw = sessionStorage.getItem(PENDING_BOOKING_KEY);
+          if (raw && isAuthenticated) {
+            const pending = JSON.parse(raw);
+            if (pending.venueId === venueId) {
+              if (pending.courtId) {
+                const court = v.courts.find((c) => c.id === pending.courtId);
+                if (court) {
+                  setSelectedCourt(court);
+                  setSelectedSport(court.sport);
+                }
+              }
+              if (pending.date) setSelectedDate(pending.date);
+              if (pending.slotIds) setSelectedSlotIds(pending.slotIds);
+              if (pending.step) setCurrentStep(Math.min(pending.step, 4));
+              sessionStorage.removeItem(PENDING_BOOKING_KEY);
+              toast.success('Your booking selections have been restored!');
+            }
+          }
+        } catch { /* ignore */ }
       }
     });
-  }, [venueId, initialCourtId]);
+  }, [venueId, initialCourtId, isAuthenticated]);
 
   // Load slots & smart picks when court or date changes
   useEffect(() => {
@@ -436,7 +486,7 @@ export default function BookingPage() {
               <Button variant="outline" onClick={() => setCurrentStep(3)}>
                 ← Back
               </Button>
-              <Button onClick={() => setCurrentStep(5)}>
+              <Button onClick={() => { if (requireAuth()) setCurrentStep(5); }}>
                 Proceed to Payment →
               </Button>
             </div>
@@ -456,7 +506,7 @@ export default function BookingPage() {
             </div>
 
             {/* Payment Form according to modern web guidance */}
-            <form onSubmit={(e) => { e.preventDefault(); handlePaymentSubmit(); }} className={styles.cardForm}>
+            <form onSubmit={(e) => { e.preventDefault(); if (requireAuth()) handlePaymentSubmit(); }} className={styles.cardForm}>
               <Input
                 label="Cardholder Name"
                 value={cardName}

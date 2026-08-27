@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
@@ -10,6 +10,8 @@ import styles from './RegisterPage.module.css';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -85,8 +87,8 @@ export default function RegisterPage() {
       });
 
       toast.success(res.message || 'Registration successful! Verification code sent.');
-      // Pass email to OTP page
-      navigate('/auth/verify-otp', { state: { email: formData.email } });
+      // Pass email and redirect to OTP page
+      navigate('/auth/verify-otp', { state: { email: formData.email, redirect: redirectTo } });
     } catch (err: any) {
       toast.error(err.message || 'Registration failed');
     } finally {
@@ -221,7 +223,7 @@ export default function RegisterPage() {
 
       <div className={styles.footer}>
         Already have an account?{' '}
-        <Link to="/auth/login" className={styles.link}>
+        <Link to={redirectTo ? `/auth/login?redirect=${encodeURIComponent(redirectTo)}` : '/auth/login'} className={styles.link}>
           Log in
         </Link>
       </div>

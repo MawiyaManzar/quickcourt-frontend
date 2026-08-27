@@ -78,12 +78,12 @@ const router = createBrowserRouter([
       { path: '/',                        element: <Suspense fallback={<PageLoader />}><HomePage /></Suspense> },
       { path: '/venues',                  element: <Suspense fallback={<PageLoader />}><VenuesPage /></Suspense> },
       { path: '/venues/:venueId',         element: <Suspense fallback={<PageLoader />}><VenueDetailPage /></Suspense> },
+      { path: '/venues/:venueId/book',    element: <Suspense fallback={<PageLoader />}><BookingPage /></Suspense> },
 
-      /* Protected user pages */
+      /* Protected user pages (require login) */
       {
         element: <RoleRoute allowedRoles={['USER']} />,
         children: [
-          { path: '/venues/:venueId/book', element: <Suspense fallback={<PageLoader />}><BookingPage /></Suspense> },
           { path: '/bookings',             element: <Suspense fallback={<PageLoader />}><MyBookingsPage /></Suspense> },
           { path: '/profile',              element: <Suspense fallback={<PageLoader />}><ProfilePage /></Suspense> },
         ],

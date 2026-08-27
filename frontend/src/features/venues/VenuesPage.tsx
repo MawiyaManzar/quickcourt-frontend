@@ -4,6 +4,9 @@ import { venueService } from './services/venueService';
 import type { Venue, SportType, VenueType } from './types';
 import VenueCard from './components/VenueCard';
 import VenueFilters from './components/VenueFilters';
+import { SkeletonCard } from '../../components/ui/Skeleton';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { Button } from '../../components/ui/Button';
 import styles from './VenuesPage.module.css';
 
 export default function VenuesPage() {
@@ -130,20 +133,20 @@ export default function VenuesPage() {
           {isLoading ? (
             <div className={styles.venuesGrid}>
               {[1, 2, 3, 4, 5, 6].map((n) => (
-                <div key={n} className={styles.skeletonCard} />
+                <SkeletonCard key={n} />
               ))}
             </div>
           ) : venues.length === 0 ? (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>🏟️</div>
-              <h3 className={styles.emptyTitle}>No Venues Found</h3>
-              <p className={styles.emptyDesc}>
-                We couldn't find any sports venues matching your exact filter criteria. Try adjusting your price range or clearing filters.
-              </p>
-              <button onClick={handleClearAll} className={styles.clearBtn}>
-                Reset Filters
-              </button>
-            </div>
+            <EmptyState
+              icon="🏟️"
+              title="No Venues Found"
+              description="We couldn't find any sports venues matching your exact filter criteria. Try adjusting your search query, price range, or clearing filters."
+              action={
+                <Button onClick={handleClearAll}>
+                  Reset All Filters
+                </Button>
+              }
+            />
           ) : (
             <>
               <div className={styles.venuesGrid}>

@@ -17,45 +17,17 @@ export const bookingService = {
         ? raw.data
         : [];
 
-      if (rawArray.length > 0) {
-        return rawArray.map((s: any, idx: number) => ({
-          id: s.id || `slot-${courtId}-${date}-${s.startTime || idx}`,
-          startTime: s.startTime || '00:00',
-          endTime: s.endTime || '00:00',
-          status: (s.status as any) || 'AVAILABLE',
-          price: Number(s.price || s.pricePerHour || 500),
-        }));
-      }
-    } catch {
-      // Fallback slot generator
+      return rawArray.map((s: any, idx: number) => ({
+        id: s.id || `slot-${courtId}-${date}-${s.startTime || idx}`,
+        startTime: s.startTime || '00:00',
+        endTime: s.endTime || '00:00',
+        status: (s.status as any) || 'AVAILABLE',
+        price: Number(s.price || s.pricePerHour || 500),
+      }));
+    } catch (err: any) {
+      if (err.response?.status === 404 || err.response?.status === 400) return [];
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch court availability slots');
     }
-
-    await new Promise((res) => setTimeout(res, 120));
-
-    // Generate standard 06:00 - 23:00 hourly slots
-    const mockSlots: TimeSlot[] = [];
-    const basePrice = 500;
-
-    for (let hour = 6; hour < 23; hour++) {
-      const startStr = `${hour < 10 ? '0' : ''}${hour}:00`;
-      const endStr = `${hour + 1 < 10 ? '0' : ''}${hour + 1}:00`;
-      const slotId = `slot-${courtId}-${date}-${hour}`;
-
-      // Simulate a few booked/maintenance slots for realistic UX
-      let status: TimeSlot['status'] = 'AVAILABLE';
-      if (hour === 18 || hour === 19) status = 'BOOKED';
-      if (hour === 14) status = 'MAINTENANCE';
-
-      mockSlots.push({
-        id: slotId,
-        startTime: startStr,
-        endTime: endStr,
-        status,
-        price: hour >= 18 ? basePrice + 150 : basePrice,
-      });
-    }
-
-    return mockSlots;
   },
 
   /**
@@ -66,90 +38,35 @@ export const bookingService = {
       const res = await api.get<any>('/smart-picks', { params: { courtId, date } });
       const raw = res.data;
       const picks: SmartPick[] = Array.isArray(raw) ? raw : Array.isArray(raw?.picks) ? raw.picks : Array.isArray(raw?.data) ? raw.data : [];
-      if (picks.length > 0) {
-        return picks;
-      }
-    } catch {
-      // Fallback
+      return picks;
+    } catch (err: any) {
+      if (err.response?.status === 404 || err.response?.status === 400) return [];
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch smart picks');
     }
-
-    await new Promise((res) => setTimeout(res, 100));
-
-    return [
-      {
-        id: 'sp-1',
-        type: 'POPULAR',
-        label: 'Prime Evening Slot',
-        badgeText: '🔥 Most Popular',
-        startTime: '19:00',
-        endTime: '20:00',
-        price: 650,
-      },
-      {
-        id: 'sp-2',
-        type: 'BEST_AVAILABILITY',
-        label: 'Early Morning Fresh',
-        badgeText: '⭐ Best Availability',
-        startTime: '07:00',
-        endTime: '08:00',
-        price: 500,
-      },
-      {
-        id: 'sp-3',
-        type: 'VALUE',
-        label: 'Afternoon Value',
-        badgeText: '💡 Best Rate (20% Off)',
-        startTime: '15:00',
-        endTime: '16:00',
-        price: 400,
-      },
-    ];
   },
 
   /**
-   * Create a new court booking (Protected against double-booking)
+   * Create a new court booking
    */
   async createBooking(payload: CreateBookingPayload): Promise<BookingRecord> {
     try {
       const res = await api.post<any>('/bookings', payload);
       const raw = res.data;
       const booking = raw?.booking || raw?.data?.booking || raw?.data || raw;
-      if (booking && booking.id) {
+      if (booking) {
         return booking as BookingRecord;
       }
+      throw new Error(raw.message || 'Failed to create booking');
     } catch (err: any) {
       if (err.response?.status === 409) {
         throw new Error('This court slot has just been booked by another user. Please select another time slot.');
       }
-      if (err.response && err.response.status !== 401 && err.response?.data?.message) {
-        throw new Error(err.response.data.message);
-      }
+      throw new Error(err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to create booking');
     }
-
-    await new Promise((res) => setTimeout(res, 200));
-
-    const mockBooking: BookingRecord = {
-      id: 'bkg-' + Math.random().toString(36).substring(2, 9),
-      userId: 'usr-customer-1',
-      courtId: payload.courtId,
-      courtName: 'Court 1',
-      venueName: 'QuickCourt Sports Complex',
-      sport: 'Badminton',
-      date: payload.date,
-      startTime: payload.startTime,
-      endTime: payload.endTime,
-      durationHours: 1,
-      totalPrice: 500,
-      status: 'PENDING',
-      paymentStatus: 'UNPAID',
-      createdAt: new Date().toISOString(),
-    };
-
-    return mockBooking;
   },
 
   /**
-   * Execute simulated payment for booking
+   * Execute payment for booking
    */
   async processPayment(payload: PaymentPayload): Promise<BookingRecord> {
     try {
@@ -159,37 +76,14 @@ export const bookingService = {
       if (booking) {
         return booking as BookingRecord;
       }
+      throw new Error(raw.message || 'Payment failed');
     } catch (err: any) {
-      if (err.response && err.response.status !== 401 && err.response?.data?.message) {
-        throw new Error(err.response.data.message);
-      }
+      throw new Error(err.response?.data?.message || err.response?.data?.error || err.message || 'Payment processing failed');
     }
-
-    await new Promise((res) => setTimeout(res, 250));
-
-    const confirmedBooking: BookingRecord = {
-      id: payload.bookingId,
-      userId: 'usr-customer-1',
-      courtId: 'crt-1',
-      courtName: 'Court 1',
-      venueName: 'QuickCourt Sports Complex',
-      sport: 'Badminton',
-      date: new Date().toISOString().split('T')[0],
-      startTime: '18:00',
-      endTime: '19:00',
-      durationHours: 1,
-      totalPrice: 500,
-      status: 'CONFIRMED',
-      paymentStatus: 'PAID',
-      createdAt: new Date().toISOString(),
-    };
-
-    saveLocalBooking(confirmedBooking);
-    return confirmedBooking;
   },
 
   /**
-   * Fetch current user's bookings (Combines live API and local persistence)
+   * Fetch current user's bookings
    */
   async getMyBookings(): Promise<BookingRecord[]> {
     try {
@@ -203,15 +97,10 @@ export const bookingService = {
         ? raw.data
         : [];
 
-      if (apiBookings.length > 0) {
-        return apiBookings;
-      }
-    } catch {
-      // Fallback to local storage
+      return apiBookings;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch your bookings');
     }
-
-    await new Promise((res) => setTimeout(res, 120));
-    return getLocalBookings();
   },
 
   /**
@@ -220,12 +109,10 @@ export const bookingService = {
   async cancelBooking(bookingId: string): Promise<boolean> {
     try {
       await api.patch(`/bookings/${bookingId}/cancel`);
-    } catch {
-      // Fallback
+      return true;
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to cancel booking');
     }
-
-    cancelLocalBooking(bookingId);
-    return true;
   }
 };
 
