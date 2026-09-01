@@ -3,13 +3,13 @@ import styles from './Badge.module.css';
 
 export interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'confirmed' | 'cancelled' | 'completed' | 'pending' | 'approved' | 'rejected' | 'active' | 'banned' | 'default';
+  variant?: 'success' | 'error' | 'warning' | 'info' | 'neutral' | 'primary';
   size?: 'sm' | 'md';
 }
 
 export const Badge: React.FC<BadgeProps> = ({
   children,
-  variant = 'default',
+  variant = 'neutral',
   size = 'md',
 }) => {
   return (

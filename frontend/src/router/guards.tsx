@@ -25,7 +25,7 @@ export function RoleRoute({ allowedRoles }: RoleRouteProps) {
 
   if (!user || !allowedRoles.includes(user.role)) {
     // Wrong role — redirect to their appropriate home
-    if (user?.role === 'FACILITY_OWNER') return <Navigate to="/owner" replace />;
+    if (user?.role === 'MANAGER') return <Navigate to="/dashboard" replace />;
     if (user?.role === 'ADMIN') return <Navigate to="/admin" replace />;
     return <Navigate to="/" replace />;
   }
@@ -40,7 +40,7 @@ export function PublicOnlyRoute() {
   if (!isAuthenticated) return <Outlet />;
 
   // Redirect to role-based home
-  if (user?.role === 'FACILITY_OWNER') return <Navigate to="/owner" replace />;
+  if (user?.role === 'MANAGER') return <Navigate to="/dashboard" replace />;
   if (user?.role === 'ADMIN') return <Navigate to="/admin" replace />;
   return <Navigate to="/" replace />;
 }

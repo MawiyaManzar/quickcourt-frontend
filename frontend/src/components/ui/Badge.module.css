@@ -1,40 +1,50 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-family: var(--font-sans);
-  font-weight: var(--font-semi);
+  font-weight: 600;
   border-radius: var(--radius-full);
   white-space: nowrap;
-  letter-spacing: 0.2px;
+  line-height: 1;
 }
 
+/* Sizes */
 .sm {
   padding: 2px 8px;
-  font-size: 11px;
+  font-size: 0.65rem;
 }
 
 .md {
-  padding: 4px 10px;
-  font-size: var(--text-xs);
+  padding: 3px 10px;
+  font-size: 0.7rem;
 }
 
-.default {
-  background: var(--color-bg-alt);
-  color: var(--color-text-muted);
+/* Variants */
+.success {
+  background: var(--color-success-light);
+  color: var(--color-success);
 }
 
-.confirmed, .completed, .approved, .active {
-  background: var(--color-primary-light);
-  color: var(--color-primary-hover);
+.error {
+  background: var(--color-error-light);
+  color: var(--color-error);
 }
 
-.pending {
+.warning {
   background: var(--color-warning-light);
   color: var(--color-warning);
 }
 
-.cancelled, .rejected, .banned {
-  background: var(--color-error-light);
-  color: var(--color-error);
+.info {
+  background: var(--color-info-light);
+  color: var(--color-info);
+}
+
+.neutral {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+.primary {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }

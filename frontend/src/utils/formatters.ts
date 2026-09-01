@@ -1,9 +1,14 @@
 /* ---- Currency ---- */
-export const formatCurrency = (amount: number): string =>
-  `₹${amount.toLocaleString('en-IN')}`;
+const CURRENCY_SYMBOL = '$';
 
-export const formatCurrencyPerHour = (amount: number): string =>
-  `₹${amount.toLocaleString('en-IN')}/hr`;
+export const formatCurrency = (amount: number): string =>
+  `${CURRENCY_SYMBOL}${amount.toLocaleString('en-US')}`;
+
+export const formatCurrencyCompact = (amount: number): string => {
+  if (amount >= 1_000_000) return `${CURRENCY_SYMBOL}${(amount / 1_000_000).toFixed(1)}M`;
+  if (amount >= 1_000) return `${CURRENCY_SYMBOL}${(amount / 1_000).toFixed(1)}K`;
+  return formatCurrency(amount);
+};
 
 /* ---- Date ---- */
 const DATE_FORMAT: Intl.DateTimeFormatOptions = {
@@ -14,17 +19,16 @@ const DATE_FORMAT: Intl.DateTimeFormatOptions = {
 
 export const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr + 'T00:00:00'); // parse as local date
-  return date.toLocaleDateString('en-IN', DATE_FORMAT); // e.g. "15 May 2024"
+  return date.toLocaleDateString('en-US', DATE_FORMAT);
 };
 
 export const formatDateShort = (dateStr: string): string => {
   const date = new Date(dateStr + 'T00:00:00');
-  return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }); // "15 May"
+  return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
 };
 
 /* ---- Time (12-hour) ---- */
 export const formatTime = (timeStr: string): string => {
-  // Input: "HH:MM" (24-hr), Output: "06:00 PM"
   const [hourStr, minuteStr] = timeStr.split(':');
   const hour = parseInt(hourStr, 10);
   const minute = minuteStr ?? '00';

@@ -5,7 +5,6 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { useAuthStore } from '../../stores/authStore';
-import { authApi } from './services/authApi';
 import styles from './LoginPage.module.css';
 
 export default function LoginPage() {
@@ -22,14 +21,9 @@ export default function LoginPage() {
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!email.trim()) {
-      errs.email = 'Email address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errs.email = 'Please enter a valid email address';
-    }
-    if (!password) {
-      errs.password = 'Password is required';
-    }
+    if (!email.trim()) errs.email = 'Email address is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Please enter a valid email address';
+    if (!password) errs.password = 'Password is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -40,16 +34,25 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      const res = await authApi.login({ email, password });
-      toast.success(res.message || 'Logged in successfully!');
+      // TODO: Replace with real API call
+      const mockUser = {
+        id: 'user_' + Math.random().toString(36).substring(2, 9),
+        name: email.split('@')[0],
+        email,
+        role: email.includes('admin') ? 'ADMIN' as const : email.includes('manager') ? 'MANAGER' as const : 'USER' as const,
+        status: 'ACTIVE' as const,
+        emailVerified: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      const mockToken = 'mock_jwt_' + Date.now();
 
-      setAuth(res.data.user, res.data.token);
-      const role = res.data.user.role;
+      toast.success('Logged in successfully!');
+      setAuth(mockUser, mockToken);
 
-      // Redirect to pending booking page or role default
       if (redirectTo) navigate(redirectTo);
-      else if (role === 'FACILITY_OWNER') navigate('/owner');
-      else if (role === 'ADMIN') navigate('/admin');
+      else if (mockUser.role === 'MANAGER') navigate('/dashboard');
+      else if (mockUser.role === 'ADMIN') navigate('/admin');
       else navigate('/');
     } catch (err: any) {
       toast.error(err.message || 'Login failed');
@@ -58,7 +61,6 @@ export default function LoginPage() {
     }
   };
 
-  // Quick fill helper for hackathon demoing
   const quickFill = (roleEmail: string) => {
     setEmail(roleEmail);
     setPassword('password123');
@@ -68,50 +70,21 @@ export default function LoginPage() {
     <Card className={styles.card} variant="bordered" padding="lg">
       <div className={styles.header}>
         <h2 className={styles.title}>Welcome Back</h2>
-        <p className={styles.subtitle}>Log in to manage your bookings and facilities</p>
+        <p className={styles.subtitle}>Log in to access your account</p>
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        {/* Quick Demo Shortcuts */}
         <div className={styles.demoSection}>
           <span className={styles.demoLabel}>Demo Quick-Fill:</span>
           <div className={styles.demoButtons}>
-            <button
-              type="button"
-              className={styles.demoChip}
-              onClick={() => quickFill('player@quickcourt.com')}
-            >
-              👤 Customer
-            </button>
-            <button
-              type="button"
-              className={styles.demoChip}
-              onClick={() => quickFill('owner@quickcourt.com')}
-            >
-              🏢 Owner
-            </button>
-            <button
-              type="button"
-              className={styles.demoChip}
-              onClick={() => quickFill('admin@quickcourt.com')}
-            >
-              👑 Admin
-            </button>
+            <button type="button" className={styles.demoChip} onClick={() => quickFill('user@demo.com')}>👤 User</button>
+            <button type="button" className={styles.demoChip} onClick={() => quickFill('manager@demo.com')}>📊 Manager</button>
+            <button type="button" className={styles.demoChip} onClick={() => quickFill('admin@demo.com')}>👑 Admin</button>
           </div>
         </div>
 
-        {/* Email */}
-        <Input
-          label="Email Address"
-          type="email"
-          placeholder="name@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          error={errors.email}
-          leftIcon={<span style={{ fontSize: 16 }}>✉️</span>}
-        />
+        <Input label="Email Address" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} error={errors.email} />
 
-        {/* Password */}
         <div>
           <Input
             label="Password"
@@ -120,30 +93,19 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
-            leftIcon={<span style={{ fontSize: 16 }}>🔒</span>}
             rightIcon={
-              <button
-                type="button"
-                className={styles.togglePassBtn}
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex={-1}
-              >
+              <button type="button" className={styles.togglePassBtn} onClick={() => setShowPassword(!showPassword)} tabIndex={-1}>
                 {showPassword ? '👁️' : '🙈'}
               </button>
             }
           />
         </div>
 
-        <Button type="submit" size="lg" fullWidth isLoading={isLoading}>
-          Sign In
-        </Button>
+        <Button type="submit" size="lg" fullWidth isLoading={isLoading}>Sign In</Button>
       </form>
 
       <div className={styles.footer}>
-        Don't have an account?{' '}
-        <Link to="/auth/register" className={styles.link}>
-          Register here
-        </Link>
+        Don't have an account? <Link to="/auth/register" className={styles.link}>Register here</Link>
       </div>
     </Card>
   );

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   formatCurrency,
-  formatCurrencyPerHour,
+  formatCurrencyCompact,
   formatDate,
   formatTime,
   formatTimeRange,
@@ -10,10 +10,11 @@ import {
 } from '../utils/formatters';
 
 describe('Formatter Utilities', () => {
-  it('formats currency in Rupees', () => {
-    expect(formatCurrency(500)).toBe('₹500');
-    expect(formatCurrency(125000)).toBe('₹1,25,000');
-    expect(formatCurrencyPerHour(400)).toBe('₹400/hr');
+  it('formats currency in Dollars', () => {
+    expect(formatCurrency(500)).toBe('$500');
+    expect(formatCurrency(125000)).toBe('$125,000');
+    expect(formatCurrencyCompact(1200000)).toBe('$1.2M');
+    expect(formatCurrencyCompact(4500)).toBe('$4.5K');
   });
 
   it('formats dates in DD MMM YYYY format', () => {

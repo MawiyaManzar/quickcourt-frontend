@@ -20,15 +20,15 @@ export default function App() {
             fontSize: '14px',
             fontWeight: 500,
             borderRadius: '10px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
           },
           success: {
-            iconTheme: { primary: '#16a34a', secondary: '#fff' },
-            style: { borderLeft: '4px solid #16a34a' },
+            iconTheme: { primary: '#059669', secondary: '#fff' },
+            style: { borderLeft: '4px solid #059669' },
           },
           error: {
-            iconTheme: { primary: '#dc2626', secondary: '#fff' },
-            style: { borderLeft: '4px solid #dc2626' },
+            iconTheme: { primary: '#DC2626', secondary: '#fff' },
+            style: { borderLeft: '4px solid #DC2626' },
           },
         }}
       />

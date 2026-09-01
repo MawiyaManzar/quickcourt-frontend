@@ -1,40 +1,23 @@
-import { useState, type SyntheticEvent } from 'react';
+import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { Avatar } from '../ui/Avatar';
 import styles from './UserLayout.module.css';
 
 const NAV_LINKS = [
   { to: '/', label: 'Home', exact: true },
-  { to: '/venues', label: 'Venues' },
-  { to: '/bookings', label: 'My Bookings' },
+  { to: '/dashboard', label: 'Dashboard' },
   { to: '/profile', label: 'Profile' },
 ];
-
-const CITIES = ['Delhi NCR', 'Bengaluru', 'Mumbai', 'Pune', 'Hyderabad', 'Chennai'];
 
 export default function UserLayout() {
   const { isAuthenticated, user, logout } = useAuthStore();
   const navigate = useNavigate();
-  const [selectedCity, setSelectedCity] = useState('Delhi NCR');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/auth/login');
-  };
-
-  const handleSearchSubmit = (e: SyntheticEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/venues?q=${encodeURIComponent(searchQuery.trim())}&city=${encodeURIComponent(selectedCity)}`);
-    } else {
-      navigate(`/venues?city=${encodeURIComponent(selectedCity)}`);
-    }
-  };
-
-  const handleCityChange = (city: string) => {
-    setSelectedCity(city);
-    navigate(`/venues?city=${encodeURIComponent(city)}`);
   };
 
   return (
@@ -44,42 +27,11 @@ export default function UserLayout() {
         <nav className={styles.nav}>
           {/* Brand Logo */}
           <NavLink to="/" className={styles.logo}>
-            <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
-              <rect width="36" height="36" rx="10" fill="#16a34a" />
-              <path d="M10 26 L18 10 L26 26" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <circle cx="18" cy="21" r="3" fill="white"/>
-            </svg>
-            <span>QuickCourt</span>
+            <div className={styles.logoMark}>H</div>
+            <span>AppName</span>
           </NavLink>
 
-          {/* City Selector */}
-          <div className={styles.citySelector}>
-            <span className={styles.cityIcon}>📍</span>
-            <select
-              value={selectedCity}
-              onChange={(e) => handleCityChange(e.target.value)}
-              className={styles.cityDropdown}
-
-            >
-              {CITIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Header Search Bar */}
-          <form onSubmit={handleSearchSubmit} className={styles.headerSearch}>
-            <span className={styles.searchIcon}>🔍</span>
-            <input
-              type="text"
-              placeholder="Search sports or venues..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-            />
-          </form>
-
-          {/* Nav Links */}
+          {/* Nav Links (desktop) */}
           <div className={styles.links}>
             {NAV_LINKS.map(({ to, label, exact }) => (
               <NavLink
@@ -95,20 +47,10 @@ export default function UserLayout() {
 
           {/* Actions / Auth */}
           <div className={styles.actions}>
-            {/* Notification Bell */}
-            <button className={styles.iconBtn} title="Notifications" aria-label="Notifications">
-              🔔
-            </button>
-
             {isAuthenticated ? (
               <>
                 <div className={styles.userChip}>
-                  <div className={styles.avatar}>
-                    {user?.avatar
-                      ? <img src={user.avatar} alt={user.name} />
-                      : <span>{user?.name?.[0]?.toUpperCase()}</span>
-                    }
-                  </div>
+                  <Avatar src={user?.avatar} name={user?.name} size="sm" />
                   <span className={styles.userName}>{user?.name}</span>
                 </div>
                 <button className={styles.logoutBtn} onClick={handleLogout}>Logout</button>
@@ -119,8 +61,37 @@ export default function UserLayout() {
                 <NavLink to="/auth/register" className={styles.registerBtn}>Sign Up</NavLink>
               </>
             )}
+
+            {/* Mobile hamburger */}
+            <button
+              className={styles.menuToggle}
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle navigation"
+            >
+              {mobileOpen ? '✕' : '☰'}
+            </button>
           </div>
         </nav>
+
+        {/* Mobile Nav Dropdown */}
+        {mobileOpen && (
+          <>
+            <div className={styles.mobileOverlay} onClick={() => setMobileOpen(false)} />
+            <div className={styles.mobileNav}>
+              {NAV_LINKS.map(({ to, label, exact }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={exact}
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) => `${styles.mobileLink} ${isActive ? styles.active : ''}`}
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          </>
+        )}
       </header>
 
       {/* Main Content Area */}
@@ -133,42 +104,35 @@ export default function UserLayout() {
         <div className={styles.footerContent}>
           <div className={styles.footerCol}>
             <div className={styles.logo}>
-              <svg width="24" height="24" viewBox="0 0 36 36" fill="none">
-                <rect width="36" height="36" rx="8" fill="#16a34a" />
-                <path d="M10 26 L18 10 L26 26" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                <circle cx="18" cy="21" r="3" fill="white"/>
-              </svg>
-              <span>QuickCourt</span>
+              <div className={styles.logoMark}>H</div>
+              <span>AppName</span>
             </div>
             <p className={styles.footerText}>
-              Book your favorite local sports courts in seconds. Real-time availability, instant confirmations.
+              A hackathon-ready frontend template built with React, TypeScript, and Vite.
             </p>
           </div>
 
           <div className={styles.footerCol}>
-            <h4 className={styles.footerHeading}>Sports</h4>
+            <h4 className={styles.footerHeading}>Navigation</h4>
             <div className={styles.footerLinks}>
-              <NavLink to="/venues?sport=Badminton">Badminton Courts</NavLink>
-              <NavLink to="/venues?sport=Football">Football Turfs</NavLink>
-              <NavLink to="/venues?sport=Tennis">Tennis Courts</NavLink>
-              <NavLink to="/venues?sport=Cricket">Box Cricket Nets</NavLink>
+              <NavLink to="/">Home</NavLink>
+              <NavLink to="/dashboard">Dashboard</NavLink>
+              <NavLink to="/profile">Profile</NavLink>
             </div>
           </div>
 
           <div className={styles.footerCol}>
-            <h4 className={styles.footerHeading}>Platform</h4>
+            <h4 className={styles.footerHeading}>Account</h4>
             <div className={styles.footerLinks}>
-              <NavLink to="/venues">Explore All Venues</NavLink>
-              <NavLink to="/auth/register">List Your Venue</NavLink>
-              <NavLink to="/auth/login">Owner Login</NavLink>
+              <NavLink to="/auth/login">Login</NavLink>
+              <NavLink to="/auth/register">Register</NavLink>
             </div>
           </div>
         </div>
         <div className={styles.footerBottom}>
-          <span>© 2026 QuickCourt Platform. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} AppName. All rights reserved.</span>
         </div>
       </footer>
     </div>
   );
 }
-

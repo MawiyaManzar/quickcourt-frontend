@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { Avatar } from '../ui/Avatar';
 import styles from './AdminLayout.module.css';
 
 const NAV = [
-  { to: '/admin',              label: '📊 Dashboard', exact: true },
-  { to: '/admin/facilities',   label: '🏢 Facility Approvals' },
-  { to: '/admin/users',        label: '👥 Users' },
-  { to: '/admin/bookings',     label: '📋 Bookings' },
-  { to: '/admin/analytics',    label: '📈 Analytics' },
+  { to: '/admin',          label: '📊  Dashboard', exact: true },
+  { to: '/admin/users',    label: '👥  Users' },
+  { to: '/admin/settings', label: '⚙️  Settings' },
 ];
 
 export default function AdminLayout() {
@@ -22,13 +21,9 @@ export default function AdminLayout() {
     <div className={styles.root}>
       {/* Mobile Top Header */}
       <div className={styles.mobileHeader}>
-        <div className={styles.logo}>
-          <svg width="24" height="24" viewBox="0 0 36 36" fill="none">
-            <rect width="36" height="36" rx="8" fill="#16a34a"/>
-            <path d="M10 26 L18 10 L26 26" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            <circle cx="18" cy="21" r="3" fill="white"/>
-          </svg>
-          <span>QuickCourt</span>
+        <div className={styles.logoRow}>
+          <div className={styles.logoMark}>H</div>
+          <span className={styles.logoText}>AppName</span>
         </div>
         <button
           className={styles.menuToggle}
@@ -44,13 +39,9 @@ export default function AdminLayout() {
       )}
 
       <aside className={`${styles.sidebar} ${mobileOpen ? styles.sidebarOpen : ''}`}>
-        <div className={styles.logo}>
-          <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
-            <rect width="36" height="36" rx="10" fill="#16a34a"/>
-            <path d="M10 26 L18 10 L26 26" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            <circle cx="18" cy="21" r="3" fill="white"/>
-          </svg>
-          <span>QuickCourt</span>
+        <div className={styles.logoRow}>
+          <div className={styles.logoMark}>H</div>
+          <span className={styles.logoText}>AppName</span>
           <span className={styles.adminBadge}>Admin</span>
         </div>
         <nav className={styles.nav}>
@@ -68,7 +59,7 @@ export default function AdminLayout() {
         </nav>
         <div className={styles.bottom}>
           <div className={styles.userInfo}>
-            <div className={styles.avatar}>{user?.name?.[0]?.toUpperCase()}</div>
+            <Avatar name={user?.name} src={user?.avatar} size="md" />
             <div>
               <div className={styles.userName}>{user?.name}</div>
               <div className={styles.userRole}>Administrator</div>

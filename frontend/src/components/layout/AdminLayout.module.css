@@ -9,7 +9,7 @@
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
-  z-index: var(--z-sticky, 200);
+  z-index: var(--z-sticky);
 }
 
 .menuToggle {
@@ -31,20 +31,40 @@
   display: flex; flex-direction: column;
   padding: var(--space-6) 0;
   position: sticky; top: 0; height: 100vh; flex-shrink: 0;
-  z-index: var(--z-sticky, 200);
-  transition: transform var(--transition-base, 200ms ease);
+  z-index: var(--z-sticky);
+  transition: transform var(--transition-base);
 }
 
-.logo {
+.logoRow {
   display: flex; align-items: center; gap: var(--space-2);
   padding: 0 var(--space-5) var(--space-6);
   font-size: var(--text-lg); font-weight: var(--font-bold);
   color: var(--color-text); border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-4);
 }
 
+.logoMark {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: var(--text-xs);
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+}
+
 .adminBadge {
-  background: rgba(245, 158, 11, 0.2);
-  color: #f59e0b;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
   font-size: 0.65rem;
   font-weight: 800;
   padding: 2px 6px;
@@ -70,8 +90,6 @@
 
 .userInfo { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
 
-.avatar { width: 36px; height: 36px; border-radius: var(--radius-full); background: var(--color-primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: var(--font-bold); font-size: var(--text-sm); flex-shrink: 0; }
-
 .userName { font-size: var(--text-sm); font-weight: var(--font-semi); color: var(--color-text); }
 
 .userRole { font-size: var(--text-xs); color: var(--color-text-muted); }
@@ -89,7 +107,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.3);
     z-index: 250;
   }
   .sidebar {

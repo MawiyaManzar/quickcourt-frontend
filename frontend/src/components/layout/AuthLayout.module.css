@@ -10,18 +10,10 @@
   flex-direction: column;
   justify-content: center;
   padding: var(--space-12);
-  background: linear-gradient(145deg, #14532d 0%, #16a34a 60%, #22c55e 100%);
+  background: var(--color-primary);
   color: white;
   position: relative;
   overflow: hidden;
-}
-
-.brand::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  pointer-events: none;
 }
 
 .logo {
@@ -29,6 +21,19 @@
   align-items: center;
   gap: var(--space-3);
   margin-bottom: var(--space-12);
+}
+
+.logoMark {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: var(--text-lg);
+  color: white;
 }
 
 .logoText {
@@ -53,19 +58,19 @@
   margin-bottom: var(--space-12);
 }
 
-.sportIcons {
+.featureIcons {
   display: flex;
   gap: var(--space-4);
   margin-top: auto;
 }
 
-.sportIcon {
+.featureIcon {
   font-size: 2rem;
   opacity: 0.8;
   transition: transform var(--transition-base), opacity var(--transition-base);
 }
 
-.sportIcon:hover {
+.featureIcon:hover {
   transform: scale(1.15) rotate(-5deg);
   opacity: 1;
 }

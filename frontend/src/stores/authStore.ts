@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-export type UserRole = 'USER' | 'FACILITY_OWNER' | 'ADMIN';
+export type UserRole = 'USER' | 'MANAGER' | 'ADMIN';
 export type UserStatus = 'ACTIVE' | 'BANNED';
 
 export interface AuthUser {
@@ -43,9 +43,9 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, token: null, isAuthenticated: false }),
     }),
     {
-      name: 'qc-auth',                          // localStorage key
+      name: 'app-auth',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({                 // only persist these fields
+      partialize: (state) => ({
         user: state.user,
         token: state.token,
         isAuthenticated: state.isAuthenticated,

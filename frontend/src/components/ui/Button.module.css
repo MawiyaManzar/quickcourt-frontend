@@ -63,7 +63,7 @@
   border-color: transparent;
 }
 .secondary:hover:not(:disabled) {
-  background: rgba(22, 163, 74, 0.2);
+  background: var(--color-primary-light);
 }
 
 .outline {
